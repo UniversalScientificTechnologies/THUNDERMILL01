@@ -1,12 +1,12 @@
-# THUNDERMILL01 - Eletric sensor for TF-ATMON system
+# THUNDERMILL01 - Electric field sensor for TF-ATMON system
 
-[Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for portable and airborne measurements. 
+[Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for portable and airborne measurements.
 
 ## Version for airborne measurement on board UAV
 
-## Portable Version for car or stationary measuremens
+![THUNDERMILL01A diagram in case of use in TF-ATMON system](/doc/src/img/TF-ATMON-THUNDERMILL.svg)
 
 
+## Portable Version for car or stationary measurements
 
-
-
+![THUNDERMILL01A diagram in case of use in stationary measuring system](/doc/src/img/THUNDERMILL01_stationary.png)
