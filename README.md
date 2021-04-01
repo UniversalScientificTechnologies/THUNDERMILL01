@@ -4,9 +4,9 @@
 
 ## Version for airborne measurement on board UAV
 
-![THUNDERMILL01A diagram in case of use in TF-ATMON system](/doc/src/img/TF-ATMON-THUNDERMILL.svg)
+![THUNDERMILL01A diagram in case of use in TF-ATMON system](/doc/img/TF-ATMON-THUNDERMILL.svg)
 
 
 ## Portable Version for car or stationary measurements
 
-![THUNDERMILL01A diagram in case of use in stationary measuring system](/doc/src/img/THUNDERMILL01_stationary.png)
+![THUNDERMILL01A diagram in case of use in stationary measuring system](/doc/img/THUNDERMILL01_stationary.png)
