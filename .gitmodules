@@ -1,0 +1,3 @@
+[submodule "hw/rotor"]
+	path = hw/rotor
+	url = git@github.com:UniversalScientificTechnologies/USTTHUNDERMILLPCB02.git
