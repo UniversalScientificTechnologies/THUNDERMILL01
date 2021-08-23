@@ -1,0 +1,3 @@
+[submodule "hw/USTTHUNDERMILLPCB02"]
+	path = hw/USTTHUNDERMILLPCB02
+	url = git@github.com:UniversalScientificTechnologies/USTTHUNDERMILLPCB02.git
