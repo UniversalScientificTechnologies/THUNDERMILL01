@@ -1,3 +1,6 @@
 [submodule "hw/rotor"]
 	path = hw/rotor
 	url = git@github.com:UniversalScientificTechnologies/USTTHUNDERMILLPCB02.git
+[submodule "hw/stator"]
+	path = hw/stator
+	url = git@github.com:mlab-modules/USTTHUNDERMILLPCB01.git
