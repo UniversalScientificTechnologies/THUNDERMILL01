@@ -12,7 +12,7 @@ header:
 
 ## Version for airborne measurement on board UAV
 
-In case of arborne measurement by UAV the sensor should be a part of the TF-ATMON system.
+In case of arborne measurement by UAV the sensor should be a part of TF-ATMON system.
 
 ![THUNDERMILL01A diagram - part of TF-ATMON system](doc/img/TF-ATMON-THUNDERMILL.svg)
 
