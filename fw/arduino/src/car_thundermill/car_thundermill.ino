@@ -213,8 +213,7 @@ void loop()
       }
       //while(!digitalRead(COUNT2)) counter();
       
-      Serial.print(sensor);
-      Serial.write("\n");
+      Serial.println(sensor);
       if (count>(LOOPS-1)) break;
     }
   }
