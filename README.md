@@ -6,6 +6,7 @@ THUNDERMILL01 is an open-source [Electric field mill](https://en.wikipedia.org/w
 
 In case of arborne measurements by UAV the sensor is intended be used with [TF-ATMON](https://www.thunderfly.cz/tf-atmon.html) system. [TF-ATMON system](https://www.thunderfly.cz/tf-atmon.html) provides real-time data transmission to the ground station where it is visualized in a 3D map and provides the drone operator with a fast and flexible response to the measured data. 
 
+![THUNDERMILL01A diagram - part of TF-ATMON system](/doc/img/THUNDERMILL01_UAV_TF-G2_rotor.jpg)
 
 The sensor is commonly operated equipped on the [ThunderFly TF-G2](https://github.com/ThunderFly-aerospace/TF-G2/) autogyro drone. 
 
