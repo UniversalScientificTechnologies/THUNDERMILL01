@@ -8,14 +8,24 @@ In case of arborne measurements by UAV the sensor is intended be used with [TF-A
 
 ![THUNDERMILL01A mounted to TF-G2 autogyro rotorhub](/doc/img/THUNDERMILL01_UAV_TF-G2_rotor.jpg)
 
-The sensor is commonly operated equipped on the [ThunderFly TF-G2](https://github.com/ThunderFly-aerospace/TF-G2/) autogyro drone.
+The sensor is commonly operated equipped on the [ThunderFly TF-G2](https://github.com/ThunderFly-aerospace/TF-G2/) autogyro drone. In that case the THUNDERMILL device is connected to on-board avionics as is displayed in following diagram.  
 
 ![THUNDERMILL01A diagram - part of TF-ATMON system](/doc/img/TF-ATMON-THUNDERMILL.svg)
 
 
 ## Portable Version for car or stationary measurements
 
+In case of stationary or portable use, there exist rugged outdoor variant.
+
 ![THUNDERMILL01A mounted on car platform](/doc/img/THUNDERMILL01_car_mount.jpg)
 
 
+The device itself consist the datallogger and GPS unit to store measured values captured with precision timing. 
+
 ![THUNDERMILL01A diagram - stationary measuring system](/doc/img/THUNDERMILL01_stationary.png)
+
+## Electric field mill demonstrator
+
+For demonstration of electric field mill technology there is simple demonstrator, with functional parts completely exposed. That variant is usefull as a school demonstrator. 
+
+![THUNDERMILL01A mounted on car platform](/doc/img/THUNDERMILL01_stationary_display.jpg)
