@@ -1,6 +1,7 @@
 // Thundermill for LS
 
-// Compiled with: Arduino 1.8.13
+// Compiled with: Arduino 2.1.1
+//#define DEBUG
 
 /*
   THUNDERMILL
@@ -49,7 +50,7 @@ TX1/INT1 (D 11) PD3 17|        |24 PC2 (D 18) TCK
                       +--------+
 */
 
-#define ADDR_DRV 0b1010010
+#define ADDR_DRV 0b1010010 // motor driver
 
 #define RANGE 200   // size of output buffer
 
@@ -63,10 +64,6 @@ TX1/INT1 (D 11) PD3 17|        |24 PC2 (D 18) TCK
 #define COUNT2  20    //PC4         
 #define TIMEPULSE  12 //PD4         
 #define EXTINT  2     //PB2         
-
-uint32_t serialhash = 0;
-uint8_t lo, hi;
-uint16_t u_sensor, maximum;
 
 // Read Analog Differential without gain (read datashet of ATMega1280 and ATMega2560 for refference)
 // Use analogReadDiff(NUM)
@@ -89,9 +86,6 @@ uint16_t u_sensor, maximum;
 //  15  | A15     | A9      | 1x
 #define PIN 0
 uint8_t analog_reference = INTERNAL2V56; // DEFAULT, INTERNAL, INTERNAL1V1, INTERNAL2V56, or EXTERNAL
-
-uint16_t CPS = 0;     // RPM
-boolean flipflop = false; 
 
 void write_twoByte(int address, unsigned char r, uint16_t data){
   // uint16_t begin = 0;
@@ -145,8 +139,8 @@ void setup()
   }
   
   // Open serial communications
-  Serial.begin(9600);
-  Serial1.begin(9600);
+  Serial.begin(9600, SERIAL_8N2);
+  Serial1.begin(9600, SERIAL_8N2);
 
   for(int i=0; i<3; i++)  
   {
@@ -156,7 +150,8 @@ void setup()
     delay(100);
   }
 
-  ADMUX = (analog_reference << 6) | ((PIN | 0x10) & 0x1F);
+  //ADMUX = (analog_reference << 6) | ((PIN | 0x10) & 0x1F);
+  ADMUX = (analog_reference << 6) | 0x010000; // +AD0 & -AD1, 1x, ADLAR right adjusted
   
   ADCSRB = 1;               // Switching ADC to One time read
   sbi(ADCSRA, 2);           // 0x100 = clock divided by 16
@@ -180,7 +175,6 @@ void setup()
   write_twoByte(ADDR_DRV, 0x00, 0xffff); // Write 0b1111111111111111 (0xffff) to 0x00 arduino
 
 
-
   for(int i=0; i<3; i++)  
   {
     digitalWrite(LED3, LOW);  
@@ -191,21 +185,21 @@ void setup()
 
 }
 
-uint8_t buffer[RANGE];       // buffer for histogram
+uint16_t buffer[RANGE];       // buffer for histogram
 uint8_t count=0;        // counter of half turns of mill
-uint8_t loop_c = 0;   // counter of mavlink packets
-boolean edge = true;  // helper variable for rasing edge of half turn
-uint8_t heart = 0;    // heartbeat
 
 #define LOOPS 5
-uint8_t sensor;
 
 void adc()
 {
+  uint16_t u_sensor;
   uint16_t n = 0;
+
   while(true)
   {
-    uint16_t filtered = 0;
+    int16_t filtered = 0;
+    uint8_t lo, hi;
+
     for(uint8_t j=0; j<8; j++)
     {
       sbi(ADCSRA, ADSC);        // ADC start conversions
@@ -215,24 +209,16 @@ void adc()
       hi = ADCH;
       sbi(ADCSRA, ADIF);            // reset interrupt flag from ADC
 
-      sensor = (bitRead(hi,0) << 7) | (lo >> 1);      // combine the two bytes
-      if (!bitRead(hi,1)) 
-      {
-        sensor = 128+sensor; 
-      }
-      else
-      {
-        sensor = 128-(255-sensor); 
-      }
-      filtered += sensor;      
+      u_sensor = ((hi) << 8) | (lo);      // combine the two bytes
+      u_sensor &= 0x3FF;                  // pro sichr
+      u_sensor >>= 1;                     // div 2
+      filtered += u_sensor;      
     }
-    filtered >>= 3; 
+    filtered >>= 3;  // mean
     buffer[n++]=filtered;
     if (!digitalRead(EXTINT)) break;
     if (n>RANGE) break;
   }
-  //Serial.println(n-1);
-  //Serial1.println("0");
   Serial1.print(buffer[0]);
   for(uint16_t i=1; i<n; i++)
   {
@@ -240,20 +226,25 @@ void adc()
     Serial1.print(buffer[i]);
   }
   Serial1.println();
+
+#ifdef DEBUG
+  for(uint16_t i=0; i<n; i++)
+  {
+    Serial.println(buffer[i]);
+  }
+  Serial.println("0");
+#endif
 }
 
 void loop()
 {
   while(true)
   {
-    //while(digitalRead(EXTINT)) delayMicroseconds(10);
-    //while(!digitalRead(EXTINT)) delayMicroseconds(10);
-    while(digitalRead(EXTINT));// delayMicroseconds(10);
-    while(!digitalRead(EXTINT));// delayMicroseconds(10);
+    while(digitalRead(EXTINT)); delayMicroseconds(10);
+    while(!digitalRead(EXTINT)); delayMicroseconds(10);
     adc();
     digitalWrite(LED1, !digitalRead(LED1));
     count++;   
     if (count==LOOPS) {count=0; digitalWrite(LED3, !digitalRead(LED3));};
-    if ((sensor>(128+30)) or (sensor<(128-30))) digitalWrite(LED2, 1); else digitalWrite(LED2, 0);
   }
 }
