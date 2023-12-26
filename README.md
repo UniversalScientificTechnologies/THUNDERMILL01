@@ -20,15 +20,11 @@ The sensor is commonly operated and equipped on the [ThunderFly TF-G2](https://g
 
 In case of stationary or portable use, there exist rugged outdoor variant.
 
-![THUNDERMILL01A mounted on car platform](/doc/img/THUNDERMILL01_car_mount.jpg)
+![THUNDERMILL01B mounted on stationary platform](/doc/img/THUNDERMILL01_stationary.jpg)
 
+## Where to get it?
 
-The device itself consist the datallogger and GPS unit to store measured values captured with precision timing. 
+THUNDERMIL is commercially available as customised solution from [Universal Scientific Technologies s.r.o.](https://www.ust.cz/), write an email to sale@ust.cz.
+The device is designed as open-source hardware and software and is released under the GPLv3 license. 
+The device was initially developed and maintained by [UST (Universal Scientific Technologies s.r.o.)](https://www.ust.cz) company, which sells it commercially and offers technical support.
 
-![THUNDERMILL01A diagram - stationary measuring system](/doc/img/THUNDERMILL01_stationary.png)
-
-## Electric field mill demonstrator
-
-For demonstration of electric field mill technology there is simple demonstrator, with functional parts completely exposed. That variant is usefull as a school demonstrator. 
-
-![THUNDERMILL01A mounted on car platform](/doc/img/THUNDERMILL01_stationary_display.jpg)
