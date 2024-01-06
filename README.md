@@ -18,13 +18,13 @@ The sensor is commonly operated and equipped on the [ThunderFly TF-G2](https://g
 
 ## Portable Version for car or stationary measurements
 
-In case of stationary or portable use, there exist rugged outdoor variant.
+In the case of stationary or portable use, there exist rugged outdoor variants.
 
 ![THUNDERMILL01B mounted on stationary platform](/doc/img/THUNDERMILL01_stationary.jpg)
 
 ## Where to get it?
 
-THUNDERMIL is commercially available as customised solution from [Universal Scientific Technologies s.r.o.](https://www.ust.cz/), write an email to sale@ust.cz.
+THUNDERMIL is commercially available as a customized solution from [Universal Scientific Technologies s.r.o.](https://www.ust.cz/), write an email to sale@ust.cz.
 The device is designed as open-source hardware and software and is released under the GPLv3 license. 
 The device was initially developed and maintained by [UST (Universal Scientific Technologies s.r.o.)](https://www.ust.cz) company, which sells it commercially and offers technical support.
 
