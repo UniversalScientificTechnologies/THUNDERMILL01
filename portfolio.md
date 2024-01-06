@@ -1,9 +1,9 @@
 ---
-title: "THUNDERMILL01 - Electric field sensor"
+title: "Electric field sensor"
 excerpt: "[Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for portable and airborne measurements."
 header:
   image: products/THUNDERMILL01/doc/img/THUNDERMILL01_stationary.jpg
-  teaser: products/THUNDERMILL01/doc/img/THUNDERMILL_LS.gif
+  teaser: products/THUNDERMILL01/doc/img/THUNDERMILL01_stationary.jpg
   overlay_color: "#000"
   overlay_filter: "0.5"
   overlay_image: products/THUNDERMILL01/doc/img/THUNDERMILL_LS.gif
