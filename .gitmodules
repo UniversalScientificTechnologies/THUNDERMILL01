@@ -4,3 +4,6 @@
 [submodule "hw/stator"]
 	path = hw/stator
 	url = git@github.com:mlab-modules/USTTHUNDERMILLPCB01.git
+[submodule "hw/DRV10987V01"]
+	path = hw/DRV10987V01
+	url = git@github.com:mlab-modules/DRV10987V01.git
