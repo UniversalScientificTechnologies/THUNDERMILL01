@@ -1,6 +1,6 @@
 ---
 title: "Electric field sensor"
-excerpt: "[Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for portable and airborne measurements."
+excerpt: "[Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for static, portable and airborne measurements."
 header:
   image: products/THUNDERMILL01/doc/img/THUNDERMILL01_stationary.jpg
   teaser: products/THUNDERMILL01/doc/img/THUNDERMILL01_stationary.jpg
@@ -12,7 +12,7 @@ header:
 ![THUNDERMILL sensor mounted on Lomnický Štít observatory](./doc/img/THUNDERMILL_LS.gif)
 
 
-THUNDERMILL01 is an open-source [Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for static, portable and airborne measurements. The device is equipped with open-source software that provides high flexibility from the point of view of data output. The sophisticated design of the sensor provides the ability to use the sensor for many applications. The sensor can be operated statically at a fixed location or on mobile measuring devices or may be mounted on unmanned aerial vehicles.
+THUNDERMILL01 is an [Electric field mill](https://en.wikipedia.org/wiki/Field_mill) sensor for static, portable and airborne measurements. The device is equipped with open-source software that provides high flexibility from the point of view of data output. The sophisticated design of the sensor provides the ability to use the sensor for many applications. The sensor can be operated statically at a fixed location or on mobile measuring devices or may be mounted on unmanned aerial vehicles.
 
 ## Version for airborne measurements on board UAV
 
