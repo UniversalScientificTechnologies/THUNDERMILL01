@@ -28,3 +28,7 @@ THUNDERMIL is commercially available as a customized solution from [Universal Sc
 The device is designed as open-source hardware and software and is released under the GPLv3 license. 
 The device was initially developed and maintained by [UST (Universal Scientific Technologies s.r.o.)](https://www.ust.cz) company, which sells it commercially and offers technical support.
 
+## Relevant publications
+
+  * [Measurements with Angular Sensitive Electric
+Field Mill in Thunderstorms](https://iopscience.iop.org/article/10.1088/1742-6596/2985/1/012014/pdf)
