@@ -1,6 +1,6 @@
-// Thundermill for LS
+// Thundermill prototype 02
 
-// Compiled with: Arduino 1.8.13
+// Compiled with: Arduino 1.8.19
 
 /*
   THUNDERMILL
@@ -49,10 +49,6 @@ TX1/INT1 (D 11) PD3 17|        |24 PC2 (D 18) TCK
                       +--------+
 */
 
-#define ADDR_DRV 0b1010010
-
-#define RANGE 128   // size of output buffer
-
 #include "wiring_private.h"
 #include <Wire.h> 
 #include <SPI.h>
@@ -66,9 +62,7 @@ TX1/INT1 (D 11) PD3 17|        |24 PC2 (D 18) TCK
 #define EXTINT  2     //PB2         
 #define DRESET      0   // PB0
 
-uint32_t serialhash = 0;
-uint8_t lo, hi;
-uint16_t u_sensor, maximum;
+boolean revolution = false;
 
 // Read Analog Differential without gain (read datashet of ATMega1280 and ATMega2560 for refference)
 // Use analogReadDiff(NUM)
@@ -89,11 +83,14 @@ uint16_t u_sensor, maximum;
 //  13  | A13     | A9      | 1x
 //  14  | A14     | A9      | 1x
 //  15  | A15     | A9      | 1x
-#define PIN 0
-uint8_t analog_reference = INTERNAL2V56; // DEFAULT, INTERNAL, INTERNAL1V1, INTERNAL2V56, or EXTERNAL
 
-uint16_t CPS = 0;     // RPM
-boolean flipflop = false; 
+
+void revolutionISR() 
+{
+  revolution = true;
+}
+
+#define ADDR_DRV 0b1010010
 
 void write_twoByte(int address, unsigned char r, uint16_t data){
   // uint16_t begin = 0;
@@ -143,46 +140,31 @@ void setup()
 
   SPI.begin();
 
+  attachInterrupt(digitalPinToInterrupt(EXTINT), revolutionISR, RISING);
+
   Serial.println("Hmmm...");
 }
 
-uint8_t buffer[RANGE];       // buffer for histogram
-uint8_t count=0;        // counter of half turns of mill
-uint8_t loop_c = 0;   // counter of mavlink packets
-boolean edge = true;  // helper variable for rasing edge of half turn
-uint8_t heart = 0;    // heartbeat
-
-#define LOOPS 30
-uint8_t sensor, sensor1;
-
-void adc()
-{
-  for(uint16_t n=0; n<40; n++)
-  {
-    digitalWrite(DRESET, LOW); // L on CONV
-    uint16_t adcVal = SPI.transfer16(0x8000); // 0c8000 +/GND, 0x0000 +/-
-    digitalWrite(DRESET, HIGH);
-    Serial.println(adcVal);
-    //erial.print(",");
-    //delayMicroseconds(10);
-  };
-  //Serial.println();
-}
 
 void loop()
 {
   while(true)
   {
-    //while(digitalRead(EXTINT)) delayMicroseconds(100);
-    //while(!digitalRead(EXTINT)) delayMicroseconds(100);
-    //Serial.println(count);
-    //adc();
     digitalWrite(DRESET, LOW); // L on CONV
     uint16_t adcVal = SPI.transfer16(0x8000); // 0c8000 +/GND, 0x0000 +/-
     digitalWrite(DRESET, HIGH);
-    Serial.println(adcVal);
-
-    //digitalWrite(LED1, !digitalRead(LED1));
-    //count++;   
+    
+    Serial.print(adcVal);
+    if (revolution)
+    {
+      Serial.println();
+      while(digitalRead(EXTINT));
+      revolution = false;
+    }
+    else
+    {
+      Serial.print(",");
+    }
+    
   }
 }
