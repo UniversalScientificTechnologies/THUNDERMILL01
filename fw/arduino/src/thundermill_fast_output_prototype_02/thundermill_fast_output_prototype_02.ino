@@ -151,14 +151,15 @@ void loop()
   while(true)
   {
     digitalWrite(DRESET, LOW); // L on CONV
-    uint16_t adcVal = SPI.transfer16(0x8000); // 0c8000 +/GND, 0x0000 +/-
+    uint16_t adcVal = SPI.transfer16(0x8000); // 0x8000 +/GND, 0x0000 +/-
     digitalWrite(DRESET, HIGH);
-    
-    Serial.print(adcVal);
+
+    char buffer[20];
+    sprintf(buffer, "%05u", adcVal);  // "00123"
+    Serial.print(buffer);
     if (revolution)
     {
       Serial.println();
-      while(digitalRead(EXTINT));
       revolution = false;
     }
     else
