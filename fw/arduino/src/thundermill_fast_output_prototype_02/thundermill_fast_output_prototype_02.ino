@@ -115,7 +115,7 @@ void setup()
   pinMode(EXTINT, INPUT);
   pinMode(DRESET, OUTPUT);
 
-  // Open serial communications
+  // Open Serial1 communications
   Serial.begin(115200);
   Serial.println("Cvak...");
 

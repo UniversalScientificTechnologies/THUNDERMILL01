@@ -1,0 +1,31 @@
+{
+  "build": {
+    "core": "MightyCore",
+    "extra_flags": "-DARDUINO_AVR_ATmega1284P",
+    "f_cpu": "16000000L",
+    "oscillator": "external",
+    "mcu": "atmega1284p",
+    "variant": "standard"
+  },
+  "bootloader": {
+    "led_pin": "B7",
+    "uart0_pins": "uart0_rxd0_txd1",
+    "uart1_pins": "uart1_rxd2_txd3"
+  },
+  "debug": {
+    "simavr_target": "atmega1284p"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "name": "THUNDERMILL01",
+  "upload": {
+    "maximum_ram_size": 16384,
+    "maximum_size": 131072,
+    "protocol": "arduino",
+    "require_upload_port": true,
+    "speed": 115200
+  },
+  "url": "https://github.com/ThunderFly-aerospace/THUNDERMILL01",
+  "vendor": "ThunderFly s.r.o."
+}
