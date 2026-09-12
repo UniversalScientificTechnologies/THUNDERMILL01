@@ -154,6 +154,8 @@ void setup()
   motorPwmInit();                         // 20 kHz, 50 % on PB3
   pinMode(PIN_MOTOR_FAULT, INPUT_PULLUP);
   pinMode(PIN_MOTOR_FG, INPUT);
+  pinMode(PIN_MOTOR_SLEEP, OUTPUT);
+  digitalWrite(PIN_MOTOR_SLEEP, HIGH);    // enable the motor driver
 
   // Acquisition: CONV trigger output, period detector input (interrupt)
   pinMode(PIN_ADC_CONV, OUTPUT);
@@ -187,6 +189,7 @@ void setup()
     digitalWrite(PIN_LED1, LOW);
     for (uint8_t j = 0; j < 120; j++) delayMicroseconds(1000);   // ~120 ms
   }
+
 }
 
 void loop()

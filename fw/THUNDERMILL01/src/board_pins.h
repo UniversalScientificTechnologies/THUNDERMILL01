@@ -27,6 +27,7 @@ static const uint8_t PIN_ADC_CONV      = PIN_PB0;   // conversion trigger for AD
 // ---------------------------------------------------------------------------
 static const uint8_t PIN_MOTOR_PWM   = PIN_PB3;     // motor PWM (output)
 static const uint8_t PIN_MOTOR_BRAKE = PIN_PA3;     // motor brake (output)
+static const uint8_t PIN_MOTOR_SLEEP = PIN_PA4;     // motor sleep (output)
 static const uint8_t PIN_MOTOR_DIR   = PIN_PA2;     // motor direction (output)
 static const uint8_t PIN_MOTOR_FAULT = PIN_PD2;     // motor fault (input, active low)
 static const uint8_t PIN_MOTOR_FG    = PIN_PD6;     // motor FG / tacho (input)
