@@ -10,9 +10,13 @@
     - A rising edge of the period detector (optical gate, PB2/INT2) ends the
       line with a newline.
 
-  Once per minute, between periods (at a revolution boundary), the motor state,
-  temperature and humidity are read and printed on a '#'-prefixed status line so
-  the data-stream parser can skip it.
+  After STATUS_PERIOD_SAMPLES samples, the next revolution triggers a readout of
+  the motor state, temperature and humidity, printed as a fixed-layout CSV line
+  starting with "#S," so the data-stream parser can tell it apart:
+    #S,<fault>,<fg>,<tempC>,<rh>        e.g.  #S,0,1,23.45,45.67
+  fault and fg are 0/1, tempC/rh have 2 decimals or are "nan" on a sensor error.
+  The readout blocks for a while (SHT31 conversion), so afterwards the firmware
+  waits for the next revolution and restarts on a clean boundary.
 
   Serial0 (UART0): 115200 baud. Optiboot bootloader at 115200 baud.
   SHT31 hygrometer on hardware I2C (PC0=SCL, PC1=SDA).
@@ -25,22 +29,12 @@
 #include "board_pins.h"
 #include "sht31.h"
 
-// Self-test: when 1, fake revolutions are generated so the newline / status
-// path can be verified without the optical gate or a spinning mill.
-// Set back to 0 for normal operation.
-#define EFM_SELFTEST 0
-
 static SHT31 sht31(SHT31_I2C_ADDR);
 static bool sht31Ok = false;
 
-// Status (motor / temperature / humidity) readout cadence.
-#if EFM_SELFTEST
-static const uint32_t STATUS_PERIOD_MS = 5000UL;    // quick status for the demo
-static const uint32_t SELFTEST_REV_MS  = 200UL;     // fake revolution period
-#else
-static const uint32_t STATUS_PERIOD_MS = 60000UL;   // once per minute
-#endif
-static uint32_t lastStatusMs = 0;
+// Status (motor / temperature / humidity) readout cadence, counted in samples.
+static const uint16_t STATUS_PERIOD_SAMPLES = 65000;
+static uint16_t sampleCount = 950;
 
 // Period detector (optical gate) rising-edge flag, set from the ISR.
 static volatile bool revolution = false;
@@ -49,33 +43,12 @@ static void revolutionISR() { revolution = true; }
 static bool ledState = false;
 
 // -----------------------------------------------------------------------------
-// Time base
-//   Timer0 is taken over for the 20 kHz motor PWM, so the Arduino millis()/
-//   delay() (which use Timer0) are no longer valid. A 1 ms tick is generated on
-//   Timer2 instead and exposed via nowMs().
+// Note on timing
+//   Timer0 is taken over for the motor PWM, so the Arduino millis()/delay()
+//   (which use Timer0) are no longer valid. There is no other time base - all
+//   cadences are counted in samples/revolutions, and the only blocking waits are
+//   busy loops on delayMicroseconds().
 // -----------------------------------------------------------------------------
-static volatile uint32_t g_ms = 0;
-
-ISR(TIMER2_COMPA_vect) { g_ms++; }
-
-static uint32_t nowMs()
-{
-  uint32_t m;
-  uint8_t s = SREG;
-  cli();
-  m = g_ms;
-  SREG = s;
-  return m;
-}
-
-static void timebaseInit()
-{
-  // CTC, prescaler 64, TOP 249 -> 16 MHz / 64 / 250 = 1000 Hz (1 ms)
-  TCCR2A = _BV(WGM21);
-  TCCR2B = _BV(CS22);
-  OCR2A  = 249;
-  TIMSK2 = _BV(OCIE2A);
-}
 
 // -----------------------------------------------------------------------------
 // Motor PWM on PB3 = OC0A (Timer0), with soft-start ramp.
@@ -83,7 +56,7 @@ static void timebaseInit()
 //   f = F_CPU / (presc * 510) = 16 MHz / 510 = 31.4 kHz. Duty = OCR0A / 255.
 //   (Variable duty needs fixed TOP=255, so the frequency is 31.4 kHz rather than
 //    exactly 20 kHz - the closest inaudible option on this pin.)
-//   The Timer0 overflow (millis) interrupt is disabled; see timebaseInit().
+//   The Timer0 overflow (millis) interrupt is disabled in motorPwmInit().
 // -----------------------------------------------------------------------------
 static const uint8_t MOTOR_TARGET_DUTY = 28;       // ~11 % (of 255)
 
@@ -98,39 +71,27 @@ static void motorPwmInit()
 
 
 // -----------------------------------------------------------------------------
-// ADC sampling over SPI (as in the fw/arduino prototype).
-//   CONV (PB0) low triggers the conversion, then a 16-bit SPI transfer reads
-//   the result. 0x8000 selects +/GND (0x0000 = +/-).
-// -----------------------------------------------------------------------------
-static uint16_t readAdcSample()
-{
-  digitalWrite(PIN_ADC_CONV, LOW);              // L on CONV
-  const uint16_t v = SPI.transfer16(0x8000);    // 0x8000 +/GND, 0x0000 +/-
-  digitalWrite(PIN_ADC_CONV, HIGH);
-  return v;
-}
-
-// -----------------------------------------------------------------------------
-// Status readout, printed between periods (own '#'-prefixed line).
+// Status readout, one fixed-layout CSV line:
+//   #S,<fault>,<fg>,<tempC>,<rh>
+// Always 5 comma-separated fields, always in this order. fault and fg are 0/1,
+// tempC [degC] and rh [%] have 2 decimals, or "nan" when the SHT31 read failed.
 // -----------------------------------------------------------------------------
 static void printStatus()
 {
   float tempC = 0.0f, rh = 0.0f;
   const bool envOk = sht31Ok && sht31.read(tempC, rh);
 
-  Serial.print("# uptime=");
-  Serial.print(nowMs() / 1000UL);
-  Serial.print("s fault=");
+  Serial.print("#S,");
   Serial.print(digitalRead(PIN_MOTOR_FAULT) == LOW ? 1 : 0);
-  Serial.print(" fg=");
+  Serial.print(',');
   Serial.print(digitalRead(PIN_MOTOR_FG));
+  Serial.print(',');
   if (envOk) {
-    Serial.print(" T=");
     Serial.print(tempC, 2);
-    Serial.print(" RH=");
+    Serial.print(',');
     Serial.print(rh, 2);
   } else {
-    Serial.print(" T=err RH=err");
+    Serial.print("nan,nan");
   }
   Serial.println();
 }
@@ -142,9 +103,6 @@ void setup()
   // Status LED
   pinMode(PIN_LED1, OUTPUT);
   digitalWrite(PIN_LED1, LOW);
-
-  // 1 ms time base on Timer2 (Timer0 is used by the motor PWM below)
-  timebaseInit();
 
   // Motor controller
   pinMode(PIN_MOTOR_BRAKE, OUTPUT);
@@ -180,45 +138,42 @@ void setup()
   // Period detector: newline on each rising edge (one revolution)
   attachInterrupt(digitalPinToInterrupt(PIN_PERIOD_SIGNAL), revolutionISR, RISING);
 
-  lastStatusMs = nowMs();
-
-  // Startup indication: blink LED1 a few times.
   for (uint8_t i = 0; i < 5; i++) {
     digitalWrite(PIN_LED1, HIGH);
-    for (uint8_t j = 0; j < 120; j++) delayMicroseconds(1000);   // ~120 ms
+    for (uint8_t j = 0; j < 120; j++) delayMicroseconds(1000);
     digitalWrite(PIN_LED1, LOW);
-    for (uint8_t j = 0; j < 120; j++) delayMicroseconds(1000);   // ~120 ms
+    for (uint8_t j = 0; j < 120; j++) delayMicroseconds(1000);
   }
 
 }
 
 void loop()
 {
-  const uint16_t adcVal = readAdcSample();
+  digitalWrite(PIN_ADC_CONV, LOW);
+  const uint16_t adcVal = SPI.transfer16(0x8000);
+  digitalWrite(PIN_ADC_CONV, HIGH);
 
   char buf[8];
-  sprintf(buf, "%05u", adcVal);       // ADC as 5-digit zero-padded decimal
+  sprintf(buf, "%05u", adcVal); 
   Serial.print(buf);
 
-#if EFM_SELFTEST
-  static uint32_t lastRevMs = 0;
-  if (nowMs() - lastRevMs >= SELFTEST_REV_MS) {
-    lastRevMs = nowMs();
-    revolution = true;
-  }
-#endif
 
   if (revolution) {
     revolution = false;
-    Serial.println();                       // rising edge -> end of revolution
+    Serial.println();
+    sampleCount++;
 
-    ledState = !ledState;                   // activity LED, one toggle per revolution
+    ledState = !ledState;
     digitalWrite(PIN_LED1, ledState ? HIGH : LOW);
 
-    // Status readout once per minute, performed between periods.
-    if (nowMs() - lastStatusMs >= STATUS_PERIOD_MS) {
-      lastStatusMs = nowMs();
+    // Status STATUS_PERIOD_SAMPLES.
+    if (sampleCount >= STATUS_PERIOD_SAMPLES) {
+      sampleCount = 0;
       printStatus();
+
+      revolution = false;
+      while (!revolution) { }
+      revolution = false;
     }
   } else {
     Serial.print(",");
