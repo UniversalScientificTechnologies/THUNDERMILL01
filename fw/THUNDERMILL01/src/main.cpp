@@ -139,9 +139,6 @@ void setup()
   Serial.println("#Hmmm...");
   Serial.println("#THUNDERMILL02,");
 
-  // Status LED
-  pinMode(PIN_LED1, OUTPUT);
-  digitalWrite(PIN_LED1, LOW);
 
   // Motor controller
   pinMode(PIN_MOTOR_BRAKE, OUTPUT);
