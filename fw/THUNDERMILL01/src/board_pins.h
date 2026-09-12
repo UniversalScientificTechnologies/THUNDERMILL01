@@ -45,6 +45,15 @@ static const uint8_t PIN_HYGROMETER_ALERT = PIN_PD3;   // SHT31 ALERT (input)
 static const uint8_t SHT31_I2C_ADDR        = 0x44;     // ADDR pin low (0x45 if high)
 
 // ---------------------------------------------------------------------------
+// Serial number EEPROM (I2C, shares the bus with the SHT31)
+//   24AA02E48-style EEPROM: the factory-programmed EUI-48/EUI-64 node address
+//   lives at 0x08 and is used as the board serial number.
+// ---------------------------------------------------------------------------
+static const uint8_t  EEPROM_I2C_ADDR = 0x58;     // serial number EEPROM
+static const uint16_t EEPROM_SN_REG   = 0x0008;   // first byte of the serial number
+static const uint8_t  EEPROM_SN_LEN   = 16;       // bytes read from the EEPROM
+
+// ---------------------------------------------------------------------------
 // SPI (hardware SPI unit)
 //   Note: PB4 = SS. In SPI master mode keep PB4 as OUTPUT (driven high) or it
 //   must stay high, otherwise the SPI hardware reverts to slave mode.

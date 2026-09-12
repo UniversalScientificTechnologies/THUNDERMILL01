@@ -18,8 +18,12 @@
   The readout blocks for a while (SHT31 conversion), so afterwards the firmware
   waits for the next revolution and restarts on a clean boundary.
 
+  At startup the board serial number is read from the I2C EEPROM (0x58) and
+  printed once as:
+    #SN,<32 hex chars>                  ("nan" when the EEPROM does not answer)
+
   Serial0 (UART0): 115200 baud. Optiboot bootloader at 115200 baud.
-  SHT31 hygrometer on hardware I2C (PC0=SCL, PC1=SDA).
+  SHT31 hygrometer and serial number EEPROM on hardware I2C (PC0=SCL, PC1=SDA).
 */
 
 #include <Arduino.h>
@@ -32,8 +36,13 @@
 static SHT31 sht31(SHT31_I2C_ADDR);
 static bool sht31Ok = false;
 
+// Board serial number read from the I2C EEPROM, as a hex string (2 chars/byte).
+static char     serialNumber[2 * EEPROM_SN_LEN + 1] = "";
+static uint32_t serialHash = 0;     // sum of the serial number bytes
+static bool     serialOk = false;
+
 // Status (motor / temperature / humidity) readout cadence, counted in samples.
-static const uint16_t STATUS_PERIOD_SAMPLES = 65000;
+static const uint16_t STATUS_PERIOD_SAMPLES = 20000;
 static uint16_t sampleCount = 950;
 
 // Period detector (optical gate) rising-edge flag, set from the ISR.
@@ -71,6 +80,34 @@ static void motorPwmInit()
 
 
 // -----------------------------------------------------------------------------
+// Serial number readout from the I2C EEPROM (0x58).
+//   Reads EEPROM_SN_LEN bytes from EEPROM_SN_REG and formats them into
+//   serialNumber[] as lowercase hex; serialHash is their sum. On a bus error or
+//   a short answer serialNumber[] is left empty and false is returned.
+//   Must be called after Wire.begin().
+// -----------------------------------------------------------------------------
+static bool readSerialNumber()
+{
+  serialNumber[0] = '\0';
+  serialHash = 0;
+
+  Wire.beginTransmission(EEPROM_I2C_ADDR);        // request SN from EEPROM
+  Wire.write((uint8_t)(EEPROM_SN_REG >> 8));      // MSB
+  Wire.write((uint8_t)(EEPROM_SN_REG & 0xFF));    // LSB
+  if (Wire.endTransmission() != 0) return false;  // no ACK - EEPROM not present
+
+  if (Wire.requestFrom((uint8_t)EEPROM_I2C_ADDR, EEPROM_SN_LEN) != EEPROM_SN_LEN) return false;
+
+  for (uint8_t reg = 0; reg < EEPROM_SN_LEN; reg++) {
+    const uint8_t serialbyte = Wire.read();       // receive a byte
+    sprintf(&serialNumber[2 * reg], "%02x", serialbyte);
+    serialHash += serialbyte;
+  }
+  return true;
+}
+
+
+// -----------------------------------------------------------------------------
 // Status readout, one fixed-layout CSV line:
 //   #S,<fault>,<fg>,<tempC>,<rh>
 // Always 5 comma-separated fields, always in this order. fault and fg are 0/1,
@@ -99,6 +136,8 @@ static void printStatus()
 void setup()
 {
   Serial.begin(115200);
+  Serial.println("#Hmmm...");
+  Serial.println("#THUNDERMILL02,");
 
   // Status LED
   pinMode(PIN_LED1, OUTPUT);
@@ -131,9 +170,14 @@ void setup()
   digitalWrite(SPI_SS_PIN, HIGH);
   SPI.begin();
 
-  // SHT31 on hardware I2C (PC0=SCL, PC1=SDA)
+  // SHT31 and the serial number EEPROM on hardware I2C (PC0=SCL, PC1=SDA)
   Wire.begin();
   sht31Ok = sht31.begin();
+  serialOk = readSerialNumber();
+
+  // Board identification line: #SN,<32 hex chars>  (or "nan" when unreadable)
+  Serial.print("#SN,");
+  Serial.println(serialOk ? serialNumber : "nan");
 
   // Period detector: newline on each rising edge (one revolution)
   attachInterrupt(digitalPinToInterrupt(PIN_PERIOD_SIGNAL), revolutionISR, RISING);
@@ -145,10 +189,14 @@ void setup()
     for (uint8_t j = 0; j < 120; j++) delayMicroseconds(1000);
   }
 
+  Serial.println("#Setup complete");
+  Serial.flush();
 }
 
 void loop()
 {
+  while (PINB & _BV(PB2)) {}
+
   digitalWrite(PIN_ADC_CONV, LOW);
   const uint16_t adcVal = SPI.transfer16(0x8000);
   digitalWrite(PIN_ADC_CONV, HIGH);
@@ -156,11 +204,13 @@ void loop()
   char buf[8];
   sprintf(buf, "%05u", adcVal); 
   Serial.print(buf);
+  Serial.flush();
 
 
   if (revolution) {
     revolution = false;
     Serial.println();
+    Serial.flush();
     sampleCount++;
 
     ledState = !ledState;
@@ -177,5 +227,6 @@ void loop()
     }
   } else {
     Serial.print(",");
+    Serial.flush();
   }
 }
